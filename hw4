@@ -1,0 +1,45 @@
+stochastic hw4
+==========
+
+##Problem 2a
+
+covx <- matrix( c(2, 1,1,10), nrow=2, ncol=2,byrow = TRUE) 
+Q <- eigen(covx)$vectors
+eigenvalx <- eigen(covx)$values
+sdy<-sqrt(eigenvalx)
+
+samplex <- function(m){
+  samplesy<-matrix(nrow=2,ncol=m)
+  samplesx<-matrix(nrow=2,ncol=m)
+  for (i in 1:m){
+    samplesy[1,i]<-rnorm(mean=0,sd=sdy[1],n=1)
+    samplesy[2,i]<-rnorm(mean=0,sd=sdy[2],n=1)
+    samplesx[,i]<-Q %*% samplesy[,i]
+  }
+return(samplesx)}
+
+test<-samplex(100000)
+
+testp<-as.data.frame(t(test))
+colnames(testp)<-c("x1","x2")
+ggplot(testp,aes(x=x1,y=x2))+geom_point(color="blue")+coord_cartesian(xlim = c(-15, 15),ylim=
+  c(-20,20))
+
+###Problem 2B
+
+fx<-function(x){
+  y<-1/(2*pi*sqrt(det(covx)))*exp(-t(x)%*%solve(covx)%*%x/2)
+return(y)}
+
+xhat<-c(5,-20)
+fx(c(0,0))
+
+mcestimate <- function (fxn, n, lim){
+  b<-as.numeric(fxn(lim))
+  totsamp<-(samplex(n))
+  y<-apply(totsamp,2,fxn)
+  t<-c()
+  d= sum(y < b)/n
+return(d)}
+
+mcestimate(fx,100000,xhat)
